@@ -1,0 +1,1 @@
+PLEASE NOTE: The files in this directory are taken directly from the govulncheck tools `testdata`.
