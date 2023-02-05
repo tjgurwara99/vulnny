@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/token"
 	"os"
 
+	"github.com/tjgurwara99/vulnny/internal/sarif"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/vuln/client"
 	"golang.org/x/vuln/vulncheck"
@@ -43,5 +45,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to run source analysis: %v", err)
 		os.Exit(1)
 	}
-	fmt.Println(res)
+	log, err := sarif.FromResult(res)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to convert Result to sarif log: %s", err.Error())
+	}
+	data, _ := json.MarshalIndent(log, "", " ")
+	fmt.Println(string(data))
 }
