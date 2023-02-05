@@ -15,8 +15,27 @@ import (
 	"golang.org/x/vuln/vulncheck"
 )
 
+const usage = `%[1]s is a tool for finding publically known vulnerabilities withing your codebase.
+This application is a tool to find the publically known vulnerabilities withing
+your codebase using the go tools vulncheck library, the same library used to
+power the govulncheck tool.
+
+The -o flag forces %[1]s to write the resulting SARIF log to the named
+output file, instead of the default behavior of writing the SARIF log
+to stdout.
+
+Usage:
+  %[1]s [-o output] [packages]
+
+Flags:
+`
+
 func main() {
-	outFile := flag.String("o", "", "File to export the SARIF log to. If not specified, the log would be printed to the stdout.")
+	outFile := flag.String("o", "", "File to export the SARIF log to")
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), usage, os.Args[0])
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 	log, err := runVulnny()
 	if err != nil {
