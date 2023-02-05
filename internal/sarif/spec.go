@@ -16,6 +16,27 @@ type MultiFormatMessageString struct {
 	Markdown string `json:"markdown,omitempty"`
 }
 
+type RDProperties struct {
+	ID          string   `json:"id,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Kind        string   `json:"kind,omitempty"`
+	Precision   string   `json:"precision,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	Problem     string   `json:"problem.severity,omitempty"`
+}
+
+type ReportingDescriptor struct {
+	ID               string                    `json:"id"`
+	Name             string                    `json:"name,omitempty"`
+	HelpURI          string                    `json:"helpUri,omitempty"`
+	ShortDescription *MultiFormatMessageString `json:"shortDescription,omitempty"`
+	FullDescription  *MultiFormatMessageString `json:"fullDescription,omitempty"`
+	Help             *MultiFormatMessageString `json:"help,omitempty"`
+	// propertyBag that makes sense for this tool.
+	Properties *RDProperties `json:"properties,omitempty"`
+}
+
 type ToolComponent struct {
 	Name             string                    `json:"name"`
 	GUID             string                    `json:"guid,omitempty"`
@@ -23,6 +44,8 @@ type ToolComponent struct {
 	Language         string                    `json:"language,omitempty"`
 	ShortDescription *MultiFormatMessageString `json:"shortDescription,omitempty"`
 	FullDescription  *MultiFormatMessageString `json:"fullDescription,omitempty"`
+	InformationURI   string                    `json:"informationUri,omitempty"`
+	Rules            []ReportingDescriptor     `json:"rules,omitempty"`
 	// there are some other fields that might be useful
 	// but at this stage it would be overengineering.
 }
@@ -110,11 +133,12 @@ type Location struct {
 }
 
 type Result struct {
-	Message   *Message   `json:"message"`
-	RuleID    string     `json:"ruleId,omitempty"`
-	RuleIndex int        `json:"ruleIndex,omitempty"` // default -1 & minimum -1
-	Level     Level      `json:"level,omitempty"`
-	Locations []Location `json:"locations,omitempty"`
+	Message   *Message             `json:"message"`
+	RuleID    string               `json:"ruleId,omitempty"`
+	RuleIndex int                  `json:"ruleIndex,omitempty"` // default -1 & minimum -1
+	Rule      *ReportingDescriptor `json:"rule,omitempty"`
+	Level     Level                `json:"level,omitempty"`
+	Locations []Location           `json:"locations,omitempty"`
 }
 
 type Run struct {
