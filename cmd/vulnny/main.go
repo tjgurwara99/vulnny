@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"go/token"
@@ -16,6 +17,20 @@ import (
 
 func main() {
 	flag.Parse()
+	log, err := runVulnny()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+	data, err := json.MarshalIndent(log, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to marshal SARIF: %s\n", err.Error())
+		os.Exit(1)
+	}
+	fmt.Println(string(data))
+}
+
+func runVulnny() (*sarif.Log, error) {
 	fset := token.NewFileSet()
 	const mode packages.LoadMode = packages.NeedName | packages.NeedImports | packages.NeedTypes |
 		packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedDeps |
@@ -26,29 +41,26 @@ func main() {
 	}
 	pkgs, err := packages.Load(&cfg, flag.Args()...)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to load packages: %s", err.Error())
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to load packages: %w", err)
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		os.Exit(1)
+		return nil, errors.New("package loaded with errors")
 	}
 	vPkgs := vulncheck.Convert(pkgs)
 	sources := []string{"https://vuln.go.dev"}
 	dbClient, err := client.NewClient(sources, client.Options{})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create a client: %s", err.Error())
+		return nil, fmt.Errorf("failed to create a client: %w", err)
 	}
 	res, err := vulncheck.Source(context.Background(), vPkgs, &vulncheck.Config{
 		Client: dbClient,
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run source analysis: %v", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to run source analysis: %w", err)
 	}
 	log, err := sarif.FromResult(res)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to convert Result to sarif log: %s", err.Error())
+		return nil, fmt.Errorf("failed to convert Result to sarif log: %w", err.Error())
 	}
-	data, _ := json.MarshalIndent(log, "", " ")
-	fmt.Println(string(data))
+	return log, nil
 }

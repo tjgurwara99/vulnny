@@ -17,12 +17,12 @@ type MultiFormatMessageString struct {
 }
 
 type ToolComponent struct {
-	Name             string                   `json:"name"`
-	GUID             string                   `json:"guid,omitempty"`
-	SemanitcVersion  string                   `json:"semanticVersion,omitempty"`
-	Language         string                   `json:"language,omitempty"`
-	ShortDescription MultiFormatMessageString `json:"shortDescription,omitempty"`
-	FullDescription  MultiFormatMessageString `json:"fullDescription,omitempty"`
+	Name             string                    `json:"name"`
+	GUID             string                    `json:"guid,omitempty"`
+	SemanitcVersion  string                    `json:"semanticVersion,omitempty"`
+	Language         string                    `json:"language,omitempty"`
+	ShortDescription *MultiFormatMessageString `json:"shortDescription,omitempty"`
+	FullDescription  *MultiFormatMessageString `json:"fullDescription,omitempty"`
 	// there are some other fields that might be useful
 	// but at this stage it would be overengineering.
 }
@@ -48,10 +48,10 @@ const (
 )
 
 type ArtifactLocation struct {
-	URI         string  `json:"uri"`
-	URIBaseID   string  `json:"uriBaseId,omitempty"`
-	Index       int     `json:"index,omitempty"`
-	Description Message `json:"description,omitempty"`
+	URI         string   `json:"uri"`
+	URIBaseID   string   `json:"uriBaseId,omitempty"`
+	Index       int      `json:"index,omitempty"`
+	Description *Message `json:"description,omitempty"`
 }
 
 // Snippet object represents a portion of the artifact that is relevant to the result.
@@ -69,9 +69,9 @@ type Region struct {
 }
 
 type PhysicalLocation struct {
-	ArtifactLocation ArtifactLocation `json:"artifactLocation,omitempty"`
-	Region           Region           `json:"region,omitempty"`
-	ContextRegion    Region           `json:"contextRegion,omitempty"`
+	ArtifactLocation *ArtifactLocation `json:"artifactLocation,omitempty"`
+	Region           *Region           `json:"region,omitempty"`
+	ContextRegion    *Region           `json:"contextRegion,omitempty"`
 }
 
 type LogicationLocationKind string
@@ -99,18 +99,18 @@ type LogicalLocation struct {
 }
 
 type Location struct {
-	ID               int              `json:"id,omitempty"`
-	PhysicalLocation PhysicalLocation `json:"physicalLocation,omitempty"`
+	ID               int               `json:"id,omitempty"`
+	PhysicalLocation *PhysicalLocation `json:"physicalLocation,omitempty"`
 	// This might be something that is not necessary for the current version of the tool.
 	// LogicalLocation  LogicalLocation  `json:"logicalLocation,omitempty"`
-	Message     Message  `json:"message,omitempty"`
+	Message     *Message `json:"message,omitempty"`
 	Annotations []Region `json:"annotations,omitempty"`
 	// Relationships might be useful in the future but for now we'll leave it out.
 	// Relationships    []Relationship   `json:"relationships,omitempty"`
 }
 
 type Result struct {
-	Message   Message    `json:"message"`
+	Message   *Message   `json:"message"`
 	RuleID    string     `json:"ruleId,omitempty"`
 	RuleIndex int        `json:"ruleIndex,omitempty"` // default -1 & minimum -1
 	Level     Level      `json:"level,omitempty"`

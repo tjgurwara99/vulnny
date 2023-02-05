@@ -1,6 +1,7 @@
 package sarif
 
 import (
+	"go/build"
 	"os"
 	"strings"
 
@@ -12,10 +13,6 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 	filtered := slice.Filter(r.Vulns, func(i *vulncheck.Vuln) bool {
 		return i.CallSink != 0
 	})
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
 	var j int
 	var results []Result
 	for i, v := range filtered {
@@ -26,9 +23,13 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 		}
 		var locations []Location
 		for _, cs := range fn.CallSites {
+			uri, skip := getURI(cs.Pos.Filename)
+			if skip {
+				continue
+			}
 			aLoc := ArtifactLocation{
 				URIBaseID: "%SRCROOT%",
-				URI:       strings.TrimPrefix(cs.Pos.Filename, wd+"/"),
+				URI:       uri,
 				Index:     i - j,
 			}
 			region := Region{
@@ -36,11 +37,11 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 				StartColumn: cs.Pos.Column,
 			}
 			pLoc := PhysicalLocation{
-				ArtifactLocation: aLoc,
-				Region:           region,
+				ArtifactLocation: &aLoc,
+				Region:           &region,
 			}
 			loc := Location{
-				PhysicalLocation: pLoc,
+				PhysicalLocation: &pLoc,
 			}
 			locations = append(locations, loc)
 		}
@@ -50,29 +51,41 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 		level := LevelError
 		ruleID := v.OSV.ID
 		results = append(results, Result{
-			Message:   message,
+			Message:   &message,
 			Level:     level,
 			RuleID:    ruleID,
 			Locations: locations,
 		})
 	}
-
 	tool := Tool{
 		Driver: ToolComponent{
 			Name: "Vulnny",
 		},
 	}
-
 	runs := []Run{
 		{
 			Tool:    tool,
 			Results: results,
 		},
 	}
-
 	return &Log{
 		Version: Version,
 		Schema:  Schema,
 		Runs:    runs,
 	}, nil
+}
+
+func getURI(filename string) (_ string, skip bool) {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		gopath = build.Default.GOPATH
+	}
+	if strings.HasPrefix(filename, gopath) {
+		return "", true
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", true
+	}
+	return strings.TrimPrefix(filename, wd+"/"), false
 }
