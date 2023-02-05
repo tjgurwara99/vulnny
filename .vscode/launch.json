@@ -9,8 +9,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "/Users/taj/personal/vulnny/cmd/vulnny",
-            "cwd": "/Users/taj/personal/vulnny/cmd/vulnny/testdata/vuln",
+            "program": "/Users/taj/personal/vulnny",
+            "cwd": "${workspaceFolder}/testdata/vuln",
         }
     ]
 }
