@@ -53,6 +53,8 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 		}
 		level := LevelError
 		ruleID := v.OSV.ID
+		tags := []string{"security", "vulnerability"}
+		tags = append(tags, v.OSV.Aliases...)
 		rule := ReportingDescriptor{
 			ID:      ruleID,
 			Name:    "VulnerablePackage",
@@ -69,7 +71,7 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 				Name:        shortDescription,
 				Description: v.OSV.Details,
 				Kind:        "problem",
-				Tags:        []string{"security", "vulnerability"},
+				Tags:        tags,
 			},
 		}
 		results = append(results, Result{
