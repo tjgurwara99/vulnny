@@ -89,7 +89,7 @@ func runVulnny() (*sarif.Log, error) {
 	}
 	log, err := sarif.FromResult(res)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert Result to sarif log: %w", err.Error())
+		return nil, fmt.Errorf("failed to convert Result to sarif log: %w", err)
 	}
 	return log, nil
 }
