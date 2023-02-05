@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	outFile := flag.String("o", "", "File to export the SARIF log to. If not specified, the log would be printed to the stdout.")
 	flag.Parse()
 	log, err := runVulnny()
 	if err != nil {
@@ -27,7 +28,16 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to marshal SARIF: %s\n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(data))
+	out := os.Stdout
+	if *outFile != "" {
+		out, err = os.OpenFile(*outFile, os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		defer out.Close()
+	}
+	fmt.Fprintln(out, string(data))
 }
 
 func runVulnny() (*sarif.Log, error) {
