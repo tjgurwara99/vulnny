@@ -36,8 +36,10 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), usage, os.Args[0])
 		flag.PrintDefaults()
 	}
+	var tags string
+	flag.StringVar(&tags, "tags", "", "Tags to be passed to the build system")
 	flag.Parse()
-	log, err := runVulnny()
+	log, err := runVulnny(client.Options{}, setBuildFlags("-tags="+tags))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
@@ -59,7 +61,23 @@ func main() {
 	fmt.Fprintln(out, string(data))
 }
 
-func runVulnny() (*sarif.Log, error) {
+type cfgOpts func(*packages.Config) error
+
+// setBuildFlags sets the build flags to be passed to the build system.
+// The format of these flags must be in the form of bFlag[i] = "-flag=value".
+// For example, if we want to pass on the tags, we need to pass them like the following:
+//
+//	setBuildFlags("-tags=something,here")
+//
+// which is the same as how the go build system accepts these flags.
+func setBuildFlags(bFlags ...string) cfgOpts {
+	return func(c *packages.Config) error {
+		c.BuildFlags = bFlags
+		return nil
+	}
+}
+
+func runVulnny(cOpts client.Options, opts ...cfgOpts) (*sarif.Log, error) {
 	fset := token.NewFileSet()
 	const mode packages.LoadMode = packages.NeedName | packages.NeedImports | packages.NeedTypes |
 		packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedDeps |
@@ -67,6 +85,12 @@ func runVulnny() (*sarif.Log, error) {
 	cfg := packages.Config{
 		Fset: fset,
 		Mode: mode,
+	}
+	for _, opt := range opts {
+		err := opt(&cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply opts: %w", err)
+		}
 	}
 	pkgs, err := packages.Load(&cfg, flag.Args()...)
 	if err != nil {
@@ -77,7 +101,7 @@ func runVulnny() (*sarif.Log, error) {
 	}
 	vPkgs := vulncheck.Convert(pkgs)
 	sources := []string{"https://vuln.go.dev"}
-	dbClient, err := client.NewClient(sources, client.Options{})
+	dbClient, err := client.NewClient(sources, cOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a client: %w", err)
 	}
