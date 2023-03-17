@@ -58,7 +58,7 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 		rule := ReportingDescriptor{
 			ID:      ruleID,
 			Name:    "VulnerablePackage",
-			HelpURI: fmt.Sprintf("https://osv.dev/vulnerability/%s", strings.ToLower(v.OSV.ID)),
+			HelpURI: fmt.Sprintf("https://osv.dev/vulnerability/%s", v.OSV.ID),
 			ShortDescription: &MultiFormatMessageString{
 				Text: shortDescription,
 			},
