@@ -143,5 +143,5 @@ type Result struct {
 
 type Run struct {
 	Tool    Tool     `json:"tool"`
-	Results []Result `json:"results,omitempty"`
+	Results []Result `json:"results"`
 }
