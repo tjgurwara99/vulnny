@@ -15,7 +15,7 @@ func FromResult(r *vulncheck.Result) (*Log, error) {
 		return i.CallSink != 0
 	})
 	var j int
-	var results []Result
+	var results []Result = make([]Result, 0)
 	var rules []ReportingDescriptor
 	for i, v := range filtered {
 		fn, ok := r.Calls.Functions[v.CallSink]
